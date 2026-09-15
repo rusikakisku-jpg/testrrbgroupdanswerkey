@@ -14,11 +14,23 @@ export default function Pagination({ currentPage, totalPages, baseUrl = '' }: Pa
   if (totalPages <= 1) return null;
 
   const getPageUrl = (page: number) => {
-    const cleanBase = baseUrl ? baseUrl.replace(/\/page\/\d+$/, '') : '';
-    if (page === 1) {
-      return cleanBase || '/';
+    if (baseUrl.includes('?')) {
+      const [basePath, search] = baseUrl.split('?');
+      const params = new URLSearchParams(search);
+      if (page === 1) {
+        params.delete('page');
+      } else {
+        params.set('page', String(page));
+      }
+      const qs = params.toString();
+      return qs ? `${basePath}?${qs}` : basePath;
     }
-    return `${cleanBase}/page/${page}`;
+
+    const cleanBase = baseUrl ? baseUrl.replace(/\/page\/\d+\/?$/, '') : '';
+    if (page === 1) {
+      return cleanBase ? `${cleanBase}/` : '/';
+    }
+    return `${cleanBase}/page/${page}/`;
   };
 
   const pages = [];
