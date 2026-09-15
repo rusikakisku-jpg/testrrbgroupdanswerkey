@@ -6,7 +6,7 @@ import PostCard from '@/components/PostCard';
 import Sidebar from '@/components/Sidebar';
 import Pagination from '@/components/Pagination';
 
-export const revalidate = 0;
+export const dynamic = 'force-static';
 
 const POSTS_PER_PAGE = 5;
 

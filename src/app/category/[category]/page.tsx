@@ -5,7 +5,7 @@ import PostCard from '@/components/PostCard';
 import Sidebar from '@/components/Sidebar';
 import Pagination from '@/components/Pagination';
 
-export const revalidate = 0;
+export const dynamic = 'force-static';
 
 export async function generateStaticParams() {
   const defaultCats = ['notification', 'answer-key', 'admit-card', 'result', 'syllabus'];
