@@ -4,13 +4,68 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getSettings } from '@/lib/db';
 
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://rrbgroupdanswerkey.com';
+
 export const metadata: Metadata = {
-  title: 'RRB Group D Answer Key - Notification,Answer key,Result',
+  metadataBase: new URL(baseUrl),
+  title: {
+    default: 'RRB Group D Answer Key 2026 - Notification, Answer Key, Cut Off & Result',
+    template: '%s | RRB Group D Answer Key',
+  },
   description: 'Official Railway Recruitment Board RRB Group D Answer Key, Cut Off Marks, Question Paper PDF, CBT Syllabus & Result Updates 2026.',
+  keywords: [
+    'RRB Group D Answer Key 2026',
+    'RRB Answer Key Calculator',
+    'Railway Group D Result',
+    'RRB Cut Off Marks',
+    'RRB CBT Syllabus',
+    'Railway Recruitment Cell RRC',
+    'RRB Response Sheet 2026',
+    'RRB Scorecard Calculator',
+  ],
+  authors: [{ name: 'RRB Group D Team', url: baseUrl }],
+  creator: 'RRB Group D Answer Key Portal',
+  publisher: 'RRB Group D Answer Key Portal',
+  alternates: {
+    canonical: './',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_IN',
+    url: baseUrl,
+    siteName: 'RRB Group D Answer Key 2026',
+    title: 'RRB Group D Answer Key 2026 - Notification, Answer Key, Cut Off & Result',
+    description: 'Official Railway Recruitment Board RRB Group D Answer Key, Cut Off Marks, Question Paper PDF, CBT Syllabus & Result Updates 2026.',
+    images: [
+      {
+        url: 'https://rrbgroupdanswerkey.rusikakisku.workers.dev/uploads/logo_1784561384_6a5e3ee8e7bad.png',
+        width: 1200,
+        height: 630,
+        alt: 'RRB Group D Answer Key Portal Logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'RRB Group D Answer Key 2026 - Notification, Answer Key, Cut Off & Result',
+    description: 'Official Railway Recruitment Board RRB Group D Answer Key, Cut Off Marks, Question Paper PDF, CBT Syllabus & Result Updates 2026.',
+    images: ['https://rrbgroupdanswerkey.rusikakisku.workers.dev/uploads/logo_1784561384_6a5e3ee8e7bad.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   icons: {
-    icon: 'https://rrbgroupdanswerkey.rusikakisku.workers.dev/uploads/favicon_1784561384_6a5e3ee8e8ce5.png',
-    shortcut: 'https://rrbgroupdanswerkey.rusikakisku.workers.dev/uploads/favicon_1784561384_6a5e3ee8e8ce5.png',
-    apple: 'https://rrbgroupdanswerkey.rusikakisku.workers.dev/uploads/favicon_1784561384_6a5e3ee8e8ce5.png',
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
   },
 };
 
@@ -85,6 +140,44 @@ export default async function RootLayout({
           rel="stylesheet"
         />
         <link rel="icon" href={faviconUrl} />
+
+        {/* Global JSON-LD Schema: WebSite & Organization */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': [
+                {
+                  '@type': 'WebSite',
+                  '@id': `${baseUrl}/#website`,
+                  'url': baseUrl,
+                  'name': settings.site_title || 'RRB Group D Answer Key',
+                  'description': settings.site_description || 'Official Railway Recruitment Board RRB Group D Answer Key, Cut Off Marks, Question Paper PDF, CBT Syllabus & Result Updates 2026.',
+                  'publisher': {
+                    '@id': `${baseUrl}/#organization`,
+                  },
+                  'potentialAction': {
+                    '@type': 'SearchAction',
+                    'target': `${baseUrl}/blogs/?q={search_term_string}`,
+                    'query-input': 'required name=search_term_string',
+                  },
+                  'inLanguage': 'en-IN',
+                },
+                {
+                  '@type': 'Organization',
+                  '@id': `${baseUrl}/#organization`,
+                  'name': settings.site_title || 'RRB Group D Answer Key Portal',
+                  'url': baseUrl,
+                  'logo': {
+                    '@type': 'ImageObject',
+                    'url': settings.site_logo || 'https://rrbgroupdanswerkey.rusikakisku.workers.dev/uploads/logo_1784561384_6a5e3ee8e7bad.png',
+                  },
+                },
+              ],
+            }),
+          }}
+        />
       </head>
       <body>
         <Header

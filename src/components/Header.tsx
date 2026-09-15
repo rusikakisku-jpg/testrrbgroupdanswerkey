@@ -76,11 +76,19 @@ export default function Header({
               </Link>
             )}
             <div className="site-branding-text" style={{ display: 'flex', flexDirection: 'column' }}>
-              <h1 className="site-title">
-                <Link href="/" rel="home" style={siteLogo ? { gap: 0 } : undefined}>
-                  {siteTitle}
-                </Link>
-              </h1>
+              {pathname === '/' ? (
+                <h1 className="site-title">
+                  <Link href="/" rel="home" style={siteLogo ? { gap: 0 } : undefined}>
+                    {siteTitle}
+                  </Link>
+                </h1>
+              ) : (
+                <span className="site-title">
+                  <Link href="/" rel="home" style={siteLogo ? { gap: 0 } : undefined}>
+                    {siteTitle}
+                  </Link>
+                </span>
+              )}
               <span className="site-tagline">{siteTagline}</span>
             </div>
           </div>

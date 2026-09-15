@@ -56,13 +56,33 @@ export async function generateMetadata({ params }: SlugPageProps) {
   const resolvedParams = await params;
   const rawSlug = resolvedParams?.slug || '';
   const cleanSlug = decodeURIComponent(rawSlug).trim().toLowerCase();
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://rrbgroupdanswerkey.com';
 
   // Check if it's a category
   if (CATEGORY_MAP[cleanSlug]) {
     const catName = CATEGORY_MAP[cleanSlug];
+    const catUrl = `${baseUrl}/${cleanSlug}/`;
+    const title = `${catName} - RRB Group D Official Updates 2026`;
+    const description = `Browse latest official ${catName} updates, notices, exam dates and direct links for Railway Recruitment Board (RRB).`;
     return {
-      title: `${catName} - RRB Group D Answer Key 2026`,
-      description: `Browse latest ${catName} updates and official notices.`,
+      title,
+      description,
+      alternates: { canonical: catUrl },
+      openGraph: {
+        type: 'website',
+        locale: 'en_IN',
+        url: catUrl,
+        siteName: 'RRB Group D Answer Key 2026',
+        title,
+        description,
+        images: [{ url: 'https://rrbgroupdanswerkey.rusikakisku.workers.dev/uploads/logo_1784561384_6a5e3ee8e7bad.png', width: 1200, height: 630 }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: ['https://rrbgroupdanswerkey.rusikakisku.workers.dev/uploads/logo_1784561384_6a5e3ee8e7bad.png'],
+      },
     };
   }
 
@@ -73,9 +93,28 @@ export async function generateMetadata({ params }: SlugPageProps) {
       .split(',').map((c: string) => c.trim()).filter(Boolean);
     const matchedCat = allCatNames.find((c: string) => categoryToSlug(c) === cleanSlug);
     if (matchedCat) {
+      const catUrl = `${baseUrl}/${cleanSlug}/`;
+      const title = `${matchedCat} - RRB Group D Official Updates 2026`;
+      const description = `Browse latest official ${matchedCat} updates, notices, exam dates and direct links for Railway Recruitment Board (RRB).`;
       return {
-        title: `${matchedCat} - RRB Group D Answer Key 2026`,
-        description: `Browse latest ${matchedCat} updates and official notices.`,
+        title,
+        description,
+        alternates: { canonical: catUrl },
+        openGraph: {
+          type: 'website',
+          locale: 'en_IN',
+          url: catUrl,
+          siteName: 'RRB Group D Answer Key 2026',
+          title,
+          description,
+          images: [{ url: 'https://rrbgroupdanswerkey.rusikakisku.workers.dev/uploads/logo_1784561384_6a5e3ee8e7bad.png', width: 1200, height: 630 }],
+        },
+        twitter: {
+          card: 'summary_large_image',
+          title,
+          description,
+          images: ['https://rrbgroupdanswerkey.rusikakisku.workers.dev/uploads/logo_1784561384_6a5e3ee8e7bad.png'],
+        },
       };
     }
   } catch {
@@ -86,9 +125,45 @@ export async function generateMetadata({ params }: SlugPageProps) {
   const post = await getPostBySlug(cleanSlug);
   if (!post) return { title: 'Not Found' };
 
+  const postUrl = `${baseUrl}/${cleanSlug}/`;
+  const coverImage = post.cover_image
+    ? (post.cover_image.startsWith('http') ? post.cover_image : `${baseUrl}${post.cover_image.startsWith('/') ? '' : '/'}${post.cover_image}`)
+    : 'https://rrbgroupdanswerkey.rusikakisku.workers.dev/uploads/logo_1784561384_6a5e3ee8e7bad.png';
+  const desc = post.excerpt ? post.excerpt.slice(0, 160) : post.title;
+
   return {
-    title: `${post.title} - RRB Group D Answer Key`,
-    description: post.excerpt || post.title,
+    title: post.title,
+    description: desc,
+    keywords: post.tags ? post.tags.split(',').map((t) => t.trim()) : undefined,
+    alternates: {
+      canonical: postUrl,
+    },
+    openGraph: {
+      type: 'article',
+      locale: 'en_IN',
+      url: postUrl,
+      siteName: 'RRB Group D Answer Key 2026',
+      title: post.title,
+      description: desc,
+      publishedTime: post.created_at ? new Date(post.created_at.replace(' ', 'T')).toISOString() : undefined,
+      authors: [post.author_name || 'Mangal'],
+      section: post.category,
+      tags: post.tags ? post.tags.split(',').map((t) => t.trim()) : undefined,
+      images: [
+        {
+          url: coverImage,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: desc,
+      images: [coverImage],
+    },
   };
 }
 
@@ -191,12 +266,89 @@ export default async function SlugPage({ params }: SlugPageProps) {
     ? post.tags.split(',').map((t) => t.trim()).filter(Boolean)
     : [];
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://rrbgroupdanswerkey.com';
+  const fullCoverUrl = coverUrl.startsWith('http') ? coverUrl : `${baseUrl}${coverUrl}`;
+  const postCanonicalUrl = `${baseUrl}/${cleanSlug}/`;
+  const catSlug = categoryToSlug(post.category);
+
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': postCanonicalUrl,
+    },
+    headline: post.title,
+    description: post.excerpt || post.title,
+    image: [fullCoverUrl],
+    author: {
+      '@type': 'Person',
+      name: post.author_name || 'Mangal',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: settings.site_title || 'RRB Group D Answer Key',
+      logo: {
+        '@type': 'ImageObject',
+        url: settings.site_logo || 'https://rrbgroupdanswerkey.rusikakisku.workers.dev/uploads/logo_1784561384_6a5e3ee8e7bad.png',
+      },
+    },
+    datePublished: post.created_at ? new Date(post.created_at.replace(' ', 'T')).toISOString() : new Date().toISOString(),
+    dateModified: post.updated_at ? new Date(post.updated_at.replace(' ', 'T')).toISOString() : (post.created_at ? new Date(post.created_at.replace(' ', 'T')).toISOString() : new Date().toISOString()),
+    articleSection: post.category,
+    keywords: post.tags || undefined,
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: `${baseUrl}/`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: post.category,
+        item: `${baseUrl}/${catSlug}/`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: post.title,
+        item: postCanonicalUrl,
+      },
+    ],
+  };
+
   return (
     <div className="container">
       <div className="blog-layout">
         
         {/* Main Content Area */}
         <div className="content-area">
+          {/* JSON-LD Schemas */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+          />
+
+          {/* Visual Breadcrumb Navigation */}
+          <nav aria-label="Breadcrumb" className="breadcrumb-nav" style={{ marginBottom: '14px', fontSize: '0.85rem', color: '#64748b' }}>
+            <Link href="/" style={{ color: '#0284c7', textDecoration: 'none' }}>Home</Link>
+            <span style={{ margin: '0 6px', color: '#94a3b8' }}>/</span>
+            <Link href={`/${catSlug}/`} style={{ color: '#0284c7', textDecoration: 'none' }}>{post.category}</Link>
+            <span style={{ margin: '0 6px', color: '#94a3b8' }}>/</span>
+            <span style={{ color: '#64748b' }}>{post.title.length > 35 ? `${post.title.slice(0, 35)}...` : post.title}</span>
+          </nav>
+
           <article className="article-wrap">
             <header className="article-header">
               <div className="article-cats">

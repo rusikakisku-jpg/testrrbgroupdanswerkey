@@ -1,10 +1,20 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import { getPosts, getSettings, categoryToSlug } from '@/lib/db';
 import PostCard from '@/components/PostCard';
 import Sidebar from '@/components/Sidebar';
 import Pagination from '@/components/Pagination';
 
 export const dynamic = 'force-static';
+
+export const metadata: Metadata = {
+  title: 'RRB Group D Answer Key 2026 - Notification, Answer Key, Cut Off & Result Updates',
+  description:
+    'Official Railway Recruitment Board RRB Group D Answer Key, Cut Off Marks, Question Paper PDF, CBT Syllabus & Live Result Updates 2026.',
+  alternates: {
+    canonical: '/',
+  },
+};
 
 const POSTS_PER_PAGE = 5;
 

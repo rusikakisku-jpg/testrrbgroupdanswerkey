@@ -31,9 +31,13 @@ interface PageRouteProps {
 export async function generateMetadata({ params }: PageRouteProps) {
   const resolvedParams = await params;
   const pageNum = parseInt(resolvedParams?.page || '1', 10);
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://rrbgroupdanswerkey.com';
   return {
-    title: `RRB Group D Answer Key - Page ${pageNum}`,
-    description: `Browse latest posts and exam updates on Page ${pageNum}.`,
+    title: `RRB Group D Answer Key 2026 - Page ${pageNum}`,
+    description: `Browse latest posts, exam patterns, cut off marks and updates on Page ${pageNum}.`,
+    alternates: {
+      canonical: `${baseUrl}/page/${pageNum}/`,
+    },
   };
 }
 

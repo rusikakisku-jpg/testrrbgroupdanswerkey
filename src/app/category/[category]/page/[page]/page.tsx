@@ -54,6 +54,27 @@ interface CategoryPaginatedProps {
   }>;
 }
 
+export async function generateMetadata({ params }: CategoryPaginatedProps) {
+  const resolvedParams = await params;
+  const rawCat = resolvedParams?.category || '';
+  const categorySlug = decodeURIComponent(rawCat).trim().toLowerCase();
+  const pageNum = parseInt(resolvedParams?.page || '1', 10);
+  const displayTitle = categorySlug
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://rrbgroupdanswerkey.com';
+  const url = `${baseUrl}/category/${categorySlug}/page/${pageNum}/`;
+
+  return {
+    title: `${displayTitle} Updates 2026 - Page ${pageNum} | RRB Group D`,
+    description: `Read latest ${displayTitle} notifications and updates on Page ${pageNum}.`,
+    alternates: {
+      canonical: url,
+    },
+  };
+}
+
 export default async function CategoryPagePaginated({ params }: CategoryPaginatedProps) {
   const resolvedParams = await params;
 

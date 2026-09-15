@@ -35,6 +35,32 @@ interface CategoryPageProps {
   }>;
 }
 
+export async function generateMetadata({ params }: CategoryPageProps) {
+  const resolvedParams = await params;
+  const rawCat = resolvedParams?.category || '';
+  const categorySlug = decodeURIComponent(rawCat).trim().toLowerCase();
+  const displayTitle = categorySlug
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://rrbgroupdanswerkey.com';
+  const url = `${baseUrl}/category/${categorySlug}/`;
+
+  return {
+    title: `${displayTitle} Updates 2026 - RRB Group D Official Notices`,
+    description: `Read the latest ${displayTitle} updates, official circulars, exam dates, cut offs and syllabus for RRB exams.`,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      type: 'website',
+      url,
+      title: `${displayTitle} - RRB Group D`,
+      description: `Read the latest ${displayTitle} updates and notices.`,
+    },
+  };
+}
+
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
