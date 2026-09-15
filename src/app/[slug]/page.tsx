@@ -8,6 +8,7 @@ import Sidebar from '@/components/Sidebar';
 import PostCard from '@/components/PostCard';
 import Pagination from '@/components/Pagination';
 import { Calendar, Tag } from 'lucide-react';
+import DOMPurify from 'isomorphic-dompurify';
 
 export const dynamic = 'force-static';
 
@@ -382,7 +383,7 @@ export default async function SlugPage({ params }: SlugPageProps) {
             {/* Article Content */}
             <div
               className="article-body article-content"
-              dangerouslySetInnerHTML={{ __html: post.content }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
             />
 
             {/* Tags Section */}

@@ -4,6 +4,31 @@ import { categoryToSlug } from './utils';
 // Target Cloudflare Worker API Base Endpoint
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://rrbgroupdanswerkey.rusikakisku.workers.dev';
 
+// Admin API Secret Token (supports server and client environment)
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY || process.env.NEXT_PUBLIC_ADMIN_KEY || '';
+
+function getAdminHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (ADMIN_API_KEY) {
+    headers['Authorization'] = `Bearer ${ADMIN_API_KEY}`;
+  }
+  return headers;
+}
+
+export async function triggerDeployHook(): Promise<boolean> {
+  const hookUrl = process.env.DEPLOY_HOOK_URL || process.env.CLOUDFLARE_DEPLOY_HOOK_URL;
+  if (!hookUrl) return false;
+  try {
+    const res = await fetch(hookUrl, { method: 'POST' });
+    return res.ok;
+  } catch (err) {
+    console.error('Error triggering deploy hook:', err);
+    return false;
+  }
+}
+
 export { categoryToSlug };
 
 export async function getPosts(options?: { category?: string; status?: string; limit?: number; search?: string; order?: 'asc' | 'desc' }): Promise<Post[]> {
@@ -140,10 +165,14 @@ export async function updateSettings(data: Record<string, string>): Promise<bool
   try {
     const res = await fetch(`${API_BASE}/api/admin/settings`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAdminHeaders(),
       body: JSON.stringify(data),
     });
-    return res.ok;
+    if (res.ok) {
+      triggerDeployHook().catch(() => {});
+      return true;
+    }
+    return false;
   } catch (err) {
     console.error('API Error in updateSettings:', err);
     return false;
@@ -158,10 +187,14 @@ export async function savePost(data: Partial<Post>): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE}/api/admin/posts`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAdminHeaders(),
       body: JSON.stringify(data),
     });
-    return res.ok;
+    if (res.ok) {
+      triggerDeployHook().catch(() => {});
+      return true;
+    }
+    return false;
   } catch (err) {
     console.error('API Error in savePost:', err);
     return false;
@@ -172,10 +205,14 @@ export async function deletePost(id: number): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE}/api/admin/posts`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAdminHeaders(),
       body: JSON.stringify({ action: 'delete', id }),
     });
-    return res.ok;
+    if (res.ok) {
+      triggerDeployHook().catch(() => {});
+      return true;
+    }
+    return false;
   } catch (err) {
     console.error('API Error in deletePost:', err);
     return false;
