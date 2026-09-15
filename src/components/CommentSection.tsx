@@ -15,14 +15,17 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!authorName || !authorEmail || !content) return;
 
     setSubmitting(true);
+    setErrorMsg('');
     try {
-      const res = await fetch('/api/comments', {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://rrbgroupdanswerkey.rusikakisku.workers.dev';
+      const res = await fetch(`${apiBase}/api/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -48,9 +51,14 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
         setContent('');
         setSuccessMsg('Your comment has been submitted successfully!');
         setTimeout(() => setSuccessMsg(''), 5000);
+      } else {
+        setErrorMsg('Failed to submit comment. Please try again.');
+        setTimeout(() => setErrorMsg(''), 5000);
       }
     } catch (err) {
       console.error(err);
+      setErrorMsg('Failed to submit comment. Please try again.');
+      setTimeout(() => setErrorMsg(''), 5000);
     } finally {
       setSubmitting(false);
     }
@@ -115,6 +123,11 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
         {successMsg && (
           <p style={{ fontSize: '0.82rem', color: '#16a34a', fontWeight: 600, marginTop: '10px' }}>
             {successMsg}
+          </p>
+        )}
+        {errorMsg && (
+          <p style={{ fontSize: '0.82rem', color: '#dc2626', fontWeight: 600, marginTop: '10px' }}>
+            {errorMsg}
           </p>
         )}
       </form>

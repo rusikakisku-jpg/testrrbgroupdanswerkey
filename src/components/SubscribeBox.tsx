@@ -14,7 +14,8 @@ export default function SubscribeBox() {
 
     setStatus('loading');
     try {
-      const res = await fetch('/api/subscribe', {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://rrbgroupdanswerkey.rusikakisku.workers.dev';
+      const res = await fetch(`${apiBase}/api/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

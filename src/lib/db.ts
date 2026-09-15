@@ -4,8 +4,8 @@ import { categoryToSlug } from './utils';
 // Target Cloudflare Worker API Base Endpoint
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://rrbgroupdanswerkey.rusikakisku.workers.dev';
 
-// Admin API Secret Token (supports server and client environment)
-const ADMIN_API_KEY = process.env.ADMIN_API_KEY || process.env.NEXT_PUBLIC_ADMIN_KEY || '';
+// Admin API Secret Token (server-side only, never expose to client bundles)
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY || '';
 
 function getAdminHeaders(): Record<string, string> {
   const headers: Record<string, string> = {

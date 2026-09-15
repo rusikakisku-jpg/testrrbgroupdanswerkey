@@ -5,10 +5,12 @@ import React, { useState } from 'react';
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMsg('');
     const form = e.currentTarget;
     const data = {
       name: (form.elements.namedItem('name') as HTMLInputElement).value,
@@ -17,14 +19,21 @@ export default function ContactPage() {
       message: (form.elements.namedItem('message') as HTMLTextAreaElement).value,
     };
     try {
-      await fetch('https://rrbgroupdanswerkey.rusikakisku.workers.dev/api/contact', {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://rrbgroupdanswerkey.rusikakisku.workers.dev';
+      const res = await fetch(`${apiBase}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-    } catch (_) {}
-    setLoading(false);
-    setSubmitted(true);
+      if (!res.ok) {
+        throw new Error('Failed to send message');
+      }
+      setSubmitted(true);
+    } catch (_) {
+      setErrorMsg('Failed to send your message. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,6 +44,12 @@ export default function ContactPage() {
         <div className="page-content">
           <p>Have any questions, concerns, or feedback? Please fill out the contact form below, and we will get back to you within 24–48 hours.</p>
         </div>
+
+        {errorMsg && (
+          <div style={{ padding: '12px 16px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', fontWeight: 600, margin: '16px 0' }}>
+            ⚠️ {errorMsg}
+          </div>
+        )}
 
         {submitted ? (
           <div style={{ padding: '20px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', color: '#166534', fontWeight: 600, margin: '20px 0' }}>
