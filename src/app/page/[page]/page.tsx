@@ -7,17 +7,20 @@ import Pagination from '@/components/Pagination';
 
 export const revalidate = 0;
 
-export async function generateStaticParams() {
-  return [
-    { page: '1' },
-    { page: '2' },
-    { page: '3' },
-    { page: '4' },
-    { page: '5' },
-  ];
-}
-
 const POSTS_PER_PAGE = 5;
+
+export async function generateStaticParams() {
+  try {
+    const posts = await getPosts();
+    const totalPages = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
+    return Array.from({ length: totalPages }, (_, i) => ({
+      page: String(i + 1),
+    }));
+  } catch (err) {
+    console.error('Error generating static params for page/[page]:', err);
+    return [{ page: '1' }];
+  }
+}
 
 interface PageRouteProps {
   params: Promise<{

@@ -12,16 +12,28 @@ import { Calendar, Tag } from 'lucide-react';
 export const dynamic = 'force-static';
 
 export async function generateStaticParams() {
-  const posts = await getPosts();
-  const postSlugs = posts.map((p) => ({ slug: p.slug }));
-  const catSlugs = [
-    { slug: 'notification' },
-    { slug: 'answer-key' },
-    { slug: 'admit-card' },
-    { slug: 'result' },
-    { slug: 'syllabus' },
-  ];
-  return [...catSlugs, ...postSlugs];
+  try {
+    const posts = await getPosts();
+    const postSlugs = posts.map((p) => ({ slug: p.slug }));
+    const defaultCats = ['notification', 'answer-key', 'admit-card', 'result', 'syllabus'];
+    const catSet = new Set<string>(defaultCats);
+    posts.forEach((p) => {
+      if (p.category) {
+        catSet.add(categoryToSlug(p.category));
+      }
+    });
+    const catSlugs = Array.from(catSet).map((slug) => ({ slug }));
+    return [...catSlugs, ...postSlugs];
+  } catch (err) {
+    console.error('Error generating static params for [slug]:', err);
+    return [
+      { slug: 'notification' },
+      { slug: 'answer-key' },
+      { slug: 'admit-card' },
+      { slug: 'result' },
+      { slug: 'syllabus' },
+    ];
+  }
 }
 
 const POSTS_PER_PAGE = 5;
@@ -52,6 +64,22 @@ export async function generateMetadata({ params }: SlugPageProps) {
       title: `${catName} - RRB Group D Answer Key 2026`,
       description: `Browse latest ${catName} updates and official notices.`,
     };
+  }
+
+  // Check if it's a dynamic category from settings
+  try {
+    const settings = await getSettings();
+    const allCatNames = (settings.site_categories || 'Notification,Answer Key,Admit Card,Result,Syllabus')
+      .split(',').map((c: string) => c.trim()).filter(Boolean);
+    const matchedCat = allCatNames.find((c: string) => categoryToSlug(c) === cleanSlug);
+    if (matchedCat) {
+      return {
+        title: `${matchedCat} - RRB Group D Answer Key 2026`,
+        description: `Browse latest ${matchedCat} updates and official notices.`,
+      };
+    }
+  } catch {
+    // ignore
   }
 
   // Check if it's a single post

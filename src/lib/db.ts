@@ -92,6 +92,35 @@ export async function addSubscriber(email: string): Promise<boolean> {
   }
 }
 
+export async function getCategories(): Promise<{ category: string; count: number }[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/categories`, {
+      next: { revalidate: 60 },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+    }
+  } catch (err) {
+    console.error('API Error in getCategories:', err);
+  }
+
+  try {
+    const posts = await getPosts();
+    const counts: Record<string, number> = {};
+    posts.forEach((p) => {
+      if (p.category) {
+        counts[p.category] = (counts[p.category] || 0) + 1;
+      }
+    });
+    return Object.entries(counts).map(([category, count]) => ({ category, count }));
+  } catch {
+    return [];
+  }
+}
+
 export async function getSettings(): Promise<Record<string, string>> {
   try {
     const res = await fetch(`${API_BASE}/api/settings`, {

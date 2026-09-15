@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { getPosts } from '@/lib/db';
+import { getPosts, getCategories } from '@/lib/db';
 import { categoryToSlug } from '@/lib/utils';
 
 export const dynamic = 'force-static';
@@ -18,8 +18,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/terms`, lastModified: new Date() },
   ];
 
-  const categories = ['Notification', 'Answer Key', 'Admit Card', 'Result', 'Syllabus'];
-  const categoryUrls: MetadataRoute.Sitemap = categories.map((cat) => ({
+  const defaultCategories = ['Notification', 'Answer Key', 'Admit Card', 'Result', 'Syllabus'];
+  let allCats = defaultCategories;
+  try {
+    const fetchedCats = await getCategories();
+    if (fetchedCats.length > 0) {
+      allCats = Array.from(new Set([...defaultCategories, ...fetchedCats.map((c) => c.category)]));
+    }
+  } catch {
+    // fallback to default
+  }
+
+  const categoryUrls: MetadataRoute.Sitemap = allCats.map((cat) => ({
     url: `${baseUrl}/${categoryToSlug(cat)}`,
     lastModified: new Date(),
   }));
@@ -27,7 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = await getPosts();
   const postUrls: MetadataRoute.Sitemap = posts.map((post) => ({
     url: `${baseUrl}/${post.slug}`,
-    lastModified: new Date(post.created_at.replace(' ', 'T')),
+    lastModified: new Date((post.created_at || '').replace(' ', 'T') || Date.now()),
   }));
 
   return [...staticPages, ...categoryUrls, ...postUrls];

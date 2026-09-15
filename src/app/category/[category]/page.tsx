@@ -8,13 +8,20 @@ import Pagination from '@/components/Pagination';
 export const revalidate = 0;
 
 export async function generateStaticParams() {
-  return [
-    { category: 'notification' },
-    { category: 'answer-key' },
-    { category: 'admit-card' },
-    { category: 'result' },
-    { category: 'syllabus' },
-  ];
+  const defaultCats = ['notification', 'answer-key', 'admit-card', 'result', 'syllabus'];
+  try {
+    const posts = await getPosts();
+    const catSet = new Set<string>(defaultCats);
+    posts.forEach((p) => {
+      if (p.category) {
+        catSet.add(categoryToSlug(p.category));
+      }
+    });
+    return Array.from(catSet).map((category) => ({ category }));
+  } catch (err) {
+    console.error('Error generating static params for category:', err);
+    return defaultCats.map((category) => ({ category }));
+  }
 }
 
 const POSTS_PER_PAGE = 5;
@@ -59,8 +66,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const recentPosts = [...allPosts].slice(0, 5);
   const popularPosts = [...allPosts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5);
 
-  const categoriesList = ['Notification', 'Answer Key', 'Admit Card', 'Result', 'Syllabus'];
-  const categories = categoriesList.map((cat) => {
+  const defaultCatNames = ['Notification', 'Answer Key', 'Admit Card', 'Result', 'Syllabus'];
+  const allCatNames = (settings.site_categories || defaultCatNames.join(','))
+    .split(',')
+    .map((c: string) => c.trim())
+    .filter(Boolean);
+  const categories = allCatNames.map((cat: string) => {
     const count = allPosts.filter((p) => categoryToSlug(p.category) === categoryToSlug(cat)).length;
     return { category: cat, count };
   });
@@ -97,6 +108,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           popularPosts={popularPosts}
           categories={categories}
           showAds={showAds}
+          hiddenCategories={settings.hidden_categories || ''}
         />
 
       </div>

@@ -8,19 +8,44 @@ import Pagination from '@/components/Pagination';
 
 export const revalidate = 0;
 
-export async function generateStaticParams() {
-  const cats = ['notification', 'answer-key', 'admit-card', 'result', 'syllabus'];
-  const pages = ['1', '2', '3'];
-  const params: Array<{ category: string; page: string }> = [];
-  cats.forEach((category) => {
-    pages.forEach((page) => {
-      params.push({ category, page });
-    });
-  });
-  return params;
-}
-
 const POSTS_PER_PAGE = 5;
+
+export async function generateStaticParams() {
+  const defaultCats = ['notification', 'answer-key', 'admit-card', 'result', 'syllabus'];
+  try {
+    const posts = await getPosts();
+    const catCounts: Record<string, number> = {};
+    defaultCats.forEach((c) => {
+      catCounts[c] = 0;
+    });
+
+    posts.forEach((p) => {
+      if (p.category) {
+        const slug = categoryToSlug(p.category);
+        catCounts[slug] = (catCounts[slug] || 0) + 1;
+      }
+    });
+
+    const params: Array<{ category: string; page: string }> = [];
+    Object.entries(catCounts).forEach(([category, count]) => {
+      const totalPages = Math.max(1, Math.ceil(count / POSTS_PER_PAGE));
+      for (let i = 1; i <= totalPages; i++) {
+        params.push({ category, page: String(i) });
+      }
+    });
+    return params;
+  } catch (err) {
+    console.error('Error generating static params for category/[category]/page/[page]:', err);
+    const pages = ['1', '2', '3'];
+    const params: Array<{ category: string; page: string }> = [];
+    defaultCats.forEach((category) => {
+      pages.forEach((page) => {
+        params.push({ category, page });
+      });
+    });
+    return params;
+  }
+}
 
 interface CategoryPaginatedProps {
   params: Promise<{
@@ -66,8 +91,12 @@ export default async function CategoryPagePaginated({ params }: CategoryPaginate
   const recentPosts = [...allPosts].slice(0, 5);
   const popularPosts = [...allPosts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5);
 
-  const categoriesList = ['Notification', 'Answer Key', 'Admit Card', 'Result', 'Syllabus'];
-  const categories = categoriesList.map((cat) => {
+  const defaultCatNames = ['Notification', 'Answer Key', 'Admit Card', 'Result', 'Syllabus'];
+  const allCatNames = (settings.site_categories || defaultCatNames.join(','))
+    .split(',')
+    .map((c: string) => c.trim())
+    .filter(Boolean);
+  const categories = allCatNames.map((cat: string) => {
     const count = allPosts.filter((p) => categoryToSlug(p.category) === categoryToSlug(cat)).length;
     return { category: cat, count };
   });
@@ -104,6 +133,7 @@ export default async function CategoryPagePaginated({ params }: CategoryPaginate
           popularPosts={popularPosts}
           categories={categories}
           showAds={showAds}
+          hiddenCategories={settings.hidden_categories || ''}
         />
 
       </div>
