@@ -39,12 +39,47 @@ export default function Header({
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
 
-  // Use settings-driven menu or fallback to defaults
-  const navItems = menuItems && menuItems.length > 0 ? menuItems : DEFAULT_MENU;
+  // Dynamic live state initialized with server/build-time props
+  const [liveNavItems, setLiveNavItems] = useState<MenuItem[]>(
+    menuItems && menuItems.length > 0 ? menuItems : DEFAULT_MENU
+  );
+  const [liveSiteTitle, setLiveSiteTitle] = useState(siteTitle);
+  const [liveSiteTagline, setLiveSiteTagline] = useState(siteTagline);
+  const [liveSiteLogo, setLiveSiteLogo] = useState(siteLogo);
+  const [liveShowAds, setLiveShowAds] = useState(showAds);
 
-  // Prevent hydration mismatch
+  // Sync with live database settings in the background on client mount
   useEffect(() => {
-    setMounted(true);
+    const timer = setTimeout(() => setMounted(true), 0);
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://rrbgroupdanswerkey.rusikakisku.workers.dev';
+
+    fetch(`${apiBase}/api/settings`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data) return;
+        if (data.site_menu) {
+          try {
+            const parsed = typeof data.site_menu === 'string' ? JSON.parse(data.site_menu) : data.site_menu;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              const visible = parsed
+                .filter((item: { title: string; url: string; visible: number }) => item.visible === 1)
+                .map((item: { title: string; url: string }) => ({ title: item.title, url: item.url }));
+              if (visible.length > 0) {
+                setLiveNavItems(visible);
+              }
+            }
+          } catch (_) {}
+        }
+        if (data.site_title) setLiveSiteTitle(data.site_title);
+        if (data.site_tagline) setLiveSiteTagline(data.site_tagline);
+        if (data.site_logo) setLiveSiteLogo(data.site_logo);
+        if (data.ads_status !== undefined) {
+          setLiveShowAds(data.ads_status === '1');
+        }
+      })
+      .catch(() => {});
+
+    return () => clearTimeout(timer);
   }, []);
 
   // Lock body scroll when drawer is open
@@ -65,11 +100,11 @@ export default function Header({
 
           {/* Site Branding */}
           <div className="site-branding-container" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px' }}>
-            {siteLogo && (
+            {liveSiteLogo && (
               <Link href="/" className="logo-link" style={{ display: 'inline-block', textDecoration: 'none' }}>
                 <img
-                  src={siteLogo}
-                  alt={siteTitle}
+                  src={liveSiteLogo}
+                  alt={liveSiteTitle}
                   className="site-logo-img"
                   style={{ maxHeight: '48px', width: 'auto', display: 'block' }}
                 />
@@ -78,25 +113,25 @@ export default function Header({
             <div className="site-branding-text" style={{ display: 'flex', flexDirection: 'column' }}>
               {pathname === '/' ? (
                 <h1 className="site-title">
-                  <Link href="/" rel="home" style={siteLogo ? { gap: 0 } : undefined}>
-                    {siteTitle}
+                  <Link href="/" rel="home" style={liveSiteLogo ? { gap: 0 } : undefined}>
+                    {liveSiteTitle}
                   </Link>
                 </h1>
               ) : (
                 <span className="site-title">
-                  <Link href="/" rel="home" style={siteLogo ? { gap: 0 } : undefined}>
-                    {siteTitle}
+                  <Link href="/" rel="home" style={liveSiteLogo ? { gap: 0 } : undefined}>
+                    {liveSiteTitle}
                   </Link>
                 </span>
               )}
-              <span className="site-tagline">{siteTagline}</span>
+              <span className="site-tagline">{liveSiteTagline}</span>
             </div>
           </div>
 
           {/* Main Navigation (Desktop) */}
           <nav className="main-navigation">
             <ul className="nav-menu" id="nav-menu">
-              {navItems.map((item) => {
+              {liveNavItems.map((item) => {
                 const isActive =
                   item.url === '/'
                     ? pathname === '/'
@@ -135,7 +170,7 @@ export default function Header({
       </header>
 
       {/* Ad Strip 728x90 (Only rendered if showAds is true) */}
-      {showAds && (
+      {liveShowAds && (
         <div className="ad-strip">
           <div className="container" style={{ display: 'flex', justifyContent: 'center' }}>
             <div className="ad-card-728">
@@ -157,10 +192,10 @@ export default function Header({
       <div className={`hm-mobile-sidebar${mobileOpen ? ' active' : ''}`} role="dialog" aria-label="Navigation menu">
         <div className="hm-mobile-sidebar-header">
           <div className="hm-mobile-sidebar-brand">
-            {siteLogo && (
-              <img src={siteLogo} alt={siteTitle} style={{ height: '36px', width: 'auto' }} />
+            {liveSiteLogo && (
+              <img src={liveSiteLogo} alt={liveSiteTitle} style={{ height: '36px', width: 'auto' }} />
             )}
-            <span className="hm-mobile-sidebar-title">{siteTitle}</span>
+            <span className="hm-mobile-sidebar-title">{liveSiteTitle}</span>
           </div>
           <button
             className="hm-mobile-sidebar-close"
@@ -171,7 +206,7 @@ export default function Header({
           </button>
         </div>
         <ul className="hm-mobile-sidebar-menu">
-          {navItems.map((item) => {
+          {liveNavItems.map((item) => {
             const isActive =
               item.url === '/'
                 ? pathname === '/'
