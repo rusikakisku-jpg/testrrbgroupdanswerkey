@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, Calculator } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Post } from '@/lib/types';
 import { categoryToSlug } from '@/lib/utils';
 
@@ -136,34 +136,6 @@ export default function Sidebar({
   return (
     <aside className="sidebar">
       
-      {/* Answer Key Calculator Button Widget (Above Search) */}
-      {showCalcWidget && (
-        <div className="widget widget-calc" style={{ marginBottom: '24px' }}>
-          <Link
-            href="/answer-key-calculator"
-            className="calc-btn-link"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              width: '100%',
-              padding: '14px 20px',
-              background: 'linear-gradient(135deg, #0066ff 0%, #0044cc 100%)',
-              color: '#ffffff',
-              fontSize: '0.95rem',
-              fontWeight: 700,
-              borderRadius: '8px',
-              textDecoration: 'none',
-              boxShadow: '0 4px 12px rgba(0, 102, 255, 0.25)',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <Calculator style={{ width: '20px', height: '20px' }} />
-            Answer Key Calculator
-          </Link>
-        </div>
-      )}
 
       {/* Search Widget */}
       {showSearchWidget && (
