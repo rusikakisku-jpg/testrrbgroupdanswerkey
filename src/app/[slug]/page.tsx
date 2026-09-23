@@ -417,6 +417,12 @@ export default async function SlugPage({ params }: SlugPageProps) {
                   src={coverUrl}
                   alt={post.title}
                   className="article-cover"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                  width={1200}
+                  height={675}
+                  style={{ width: '100%', height: 'auto', aspectRatio: '16/9', objectFit: 'cover' }}
                 />
               )}
             </header>

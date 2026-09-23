@@ -178,6 +178,10 @@ export default function Sidebar({
                     src={getCoverUrl(post.cover_image)}
                     alt={post.title}
                     className="popular-thumb"
+                    loading="lazy"
+                    decoding="async"
+                    width={80}
+                    height={55}
                     style={{ width: '80px', height: '55px', objectFit: 'cover', objectPosition: 'center', borderRadius: '6px', display: 'block' }}
                   />
                 </Link>
@@ -205,6 +209,10 @@ export default function Sidebar({
                     src={getCoverUrl(post.cover_image)}
                     alt={post.title}
                     className="popular-thumb"
+                    loading="lazy"
+                    decoding="async"
+                    width={80}
+                    height={55}
                     style={{ width: '80px', height: '55px', objectFit: 'cover', objectPosition: 'center', borderRadius: '6px', display: 'block' }}
                   />
                 </Link>

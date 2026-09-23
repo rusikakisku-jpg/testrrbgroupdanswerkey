@@ -30,6 +30,9 @@ export default function PostCard({ post }: PostCardProps) {
             alt={post.title}
             loading="lazy"
             decoding="async"
+            width={640}
+            height={360}
+            style={{ width: '100%', height: 'auto', aspectRatio: '16/9', objectFit: 'cover' }}
           />
         </Link>
       </div>

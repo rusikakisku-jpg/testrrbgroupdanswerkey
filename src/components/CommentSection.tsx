@@ -16,6 +16,9 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
   const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  // Anti-spam & Bot Protection
+  const [honeypot, setHoneypot] = useState('');
+  const [mountedAt] = useState(() => Date.now());
 
   // Live sync approved comments on mount in background
   useEffect(() => {
@@ -32,7 +35,48 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!authorName || !authorEmail || !content) return;
+
+    // 1. Invisible Honeypot Trap: Real users won't fill this field
+    if (honeypot.trim() !== '') {
+      setSubmitting(true);
+      setTimeout(() => {
+        setSubmitting(false);
+        setSuccessMsg('Your comment has been submitted successfully!');
+      }, 700);
+      return;
+    }
+
+    // 2. Bot Time-trap: Fast submission under 800ms is typical of scripted bots
+    if (Date.now() - mountedAt < 800) {
+      setErrorMsg('Submission too fast. Please take your time.');
+      setTimeout(() => setErrorMsg(''), 5000);
+      return;
+    }
+
+    // 3. Client-side Rate-limiting: Prevent spamming multiple comments within 15 seconds
+    const lastCommentKey = 'rrb_last_comment_ts';
+    const lastCommentTime = parseInt(sessionStorage.getItem(lastCommentKey) || '0', 10);
+    if (Date.now() - lastCommentTime < 15000) {
+      setErrorMsg('Please wait a few seconds before posting another comment.');
+      setTimeout(() => setErrorMsg(''), 5000);
+      return;
+    }
+
+    const trimmedName = authorName.trim();
+    const trimmedEmail = authorEmail.trim();
+    const trimmedContent = content.trim();
+
+    if (!trimmedName || !trimmedEmail || !trimmedContent) {
+      setErrorMsg('Please fill in all required fields.');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setErrorMsg('Please enter a valid email address.');
+      setTimeout(() => setErrorMsg(''), 5000);
+      return;
+    }
 
     setSubmitting(true);
     setErrorMsg('');
@@ -43,20 +87,21 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           post_id: postId,
-          author_name: authorName,
-          author_email: authorEmail,
-          content,
+          author_name: trimmedName,
+          author_email: trimmedEmail,
+          content: trimmedContent,
         }),
       });
 
       if (res.ok) {
+        sessionStorage.setItem(lastCommentKey, Date.now().toString());
         const newComm: Comment = {
           id: Date.now(),
           post_id: postId,
           parent_id: 0,
-          author_name: authorName,
-          author_email: authorEmail,
-          content,
+          author_name: trimmedName,
+          author_email: trimmedEmail,
+          content: trimmedContent,
           status: 'approved',
           created_at: new Date().toISOString().replace('T', ' ').substring(0, 19),
         };
@@ -85,6 +130,20 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
 
       {/* Comment Form */}
       <form onSubmit={handleSubmit} style={{ marginBottom: '32px' }}>
+        {/* Anti-spam Honeypot Field (Invisible to humans, traps automated bots) */}
+        <div style={{ display: 'none', position: 'absolute', left: '-9999px', opacity: 0 }} aria-hidden="true">
+          <label htmlFor="user_comment_hp">Leave this empty</label>
+          <input
+            id="user_comment_hp"
+            type="text"
+            name="user_comment_hp"
+            tabIndex={-1}
+            autoComplete="off"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+          />
+        </div>
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '16px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#111111', marginBottom: '6px' }}>

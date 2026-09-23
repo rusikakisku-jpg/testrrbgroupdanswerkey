@@ -7,10 +7,45 @@ export default function SubscribeBox() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  // Anti-spam & Bot Protection
+  const [honeypot, setHoneypot] = useState('');
+  const [mountedAt] = useState(() => Date.now());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+
+    // 1. Invisible Honeypot Trap
+    if (honeypot.trim() !== '') {
+      setStatus('success');
+      setMessage('Thank you for subscribing! You will receive instant notifications.');
+      return;
+    }
+
+    // 2. Bot Time-trap (submission under 600ms is automated)
+    if (Date.now() - mountedAt < 600) {
+      setStatus('error');
+      setMessage('Please take a moment before submitting.');
+      return;
+    }
+
+    // 3. Client-side Rate-limiting: Prevent repeated spam clicks
+    const lastSubKey = 'rrb_last_sub_ts';
+    const lastSubTime = parseInt(sessionStorage.getItem(lastSubKey) || '0', 10);
+    if (Date.now() - lastSubTime < 20000) {
+      setStatus('error');
+      setMessage('Please wait a few seconds before subscribing again.');
+      return;
+    }
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) return;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setStatus('error');
+      setMessage('Please enter a valid email address.');
+      return;
+    }
 
     setStatus('loading');
     try {
@@ -18,10 +53,11 @@ export default function SubscribeBox() {
       const res = await fetch(`${apiBase}/api/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: trimmedEmail }),
       });
       const data = await res.json();
       if (res.ok) {
+        sessionStorage.setItem(lastSubKey, Date.now().toString());
         setStatus('success');
         setMessage('Thank you for subscribing! You will receive instant notifications.');
         setEmail('');
@@ -54,6 +90,19 @@ export default function SubscribeBox() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto pt-2">
+            {/* Anti-spam Honeypot Field */}
+            <div style={{ display: 'none', position: 'absolute', left: '-9999px', opacity: 0 }} aria-hidden="true">
+              <label htmlFor="user_sub_hp">Leave this blank</label>
+              <input
+                id="user_sub_hp"
+                type="text"
+                name="user_sub_hp"
+                tabIndex={-1}
+                autoComplete="off"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+              />
+            </div>
             <input
               type="email"
               placeholder="Enter your email address..."
