@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Comment } from '@/lib/types';
 
 interface CommentSectionProps {
@@ -16,6 +16,19 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
   const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Live sync approved comments on mount in background
+  useEffect(() => {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://rrbgroupdanswerkey.rusikakisku.workers.dev';
+    fetch(`${apiBase}/api/comments?post_id=${postId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setComments(data);
+        }
+      })
+      .catch(() => {});
+  }, [postId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

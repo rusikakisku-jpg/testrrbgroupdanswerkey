@@ -14,10 +14,16 @@ export const dynamic = 'force-static';
 
 export async function generateStaticParams() {
   try {
-    const posts = await getPosts();
+    const [posts, settings] = await Promise.all([getPosts(), getSettings()]);
     const postSlugs = posts.map((p) => ({ slug: p.slug }));
     const defaultCats = ['notification', 'answer-key', 'admit-card', 'result', 'syllabus'];
     const catSet = new Set<string>(defaultCats);
+    if (settings.site_categories) {
+      settings.site_categories.split(',').forEach((c: string) => {
+        const s = categoryToSlug(c);
+        if (s) catSet.add(s);
+      });
+    }
     posts.forEach((p) => {
       if (p.category) {
         catSet.add(categoryToSlug(p.category));
@@ -212,10 +218,45 @@ export default async function SlugPage({ params }: SlugPageProps) {
     const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
     const currentPosts = categoryPosts.slice(0, POSTS_PER_PAGE);
 
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://rrbgroupdanswerkey.com';
+    const catCanonicalUrl = `${baseUrl}/${cleanSlug}/`;
+
+    const categoryBreadcrumbSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: `${baseUrl}/`,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: displayTitle,
+          item: catCanonicalUrl,
+        },
+      ],
+    };
+
     return (
       <div className="container">
         <div className="blog-layout">
           <div className="content-area">
+            {/* Breadcrumb Schema */}
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(categoryBreadcrumbSchema) }}
+            />
+
+            {/* Visual Breadcrumb Navigation */}
+            <nav aria-label="Breadcrumb" className="breadcrumb-nav" style={{ marginBottom: '14px', fontSize: '0.85rem', color: '#64748b' }}>
+              <Link href="/" style={{ color: '#0284c7', textDecoration: 'none' }}>Home</Link>
+              <span style={{ margin: '0 6px', color: '#94a3b8' }}>/</span>
+              <span style={{ color: '#64748b' }}>{displayTitle}</span>
+            </nav>
+
             <div className="section-head">
               <h2 className="section-title">Category: {displayTitle}</h2>
             </div>

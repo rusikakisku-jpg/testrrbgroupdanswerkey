@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPosts, getSettings } from '@/lib/db';
 import { categoryToSlug } from '@/lib/utils';
@@ -13,11 +14,18 @@ const POSTS_PER_PAGE = 5;
 export async function generateStaticParams() {
   const defaultCats = ['notification', 'answer-key', 'admit-card', 'result', 'syllabus'];
   try {
-    const posts = await getPosts();
+    const [posts, settings] = await Promise.all([getPosts(), getSettings()]);
     const catCounts: Record<string, number> = {};
     defaultCats.forEach((c) => {
       catCounts[c] = 0;
     });
+
+    if (settings.site_categories) {
+      settings.site_categories.split(',').forEach((c: string) => {
+        const s = categoryToSlug(c);
+        if (s && catCounts[s] === undefined) catCounts[s] = 0;
+      });
+    }
 
     posts.forEach((p) => {
       if (p.category) {
@@ -122,10 +130,53 @@ export default async function SlugCategoryPagePaginated({ params }: SlugPaginate
     return { category: cat, count };
   });
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://rrbgroupdanswerkey.com';
+  const pageCanonicalUrl = `${baseUrl}/${categorySlug}/page/${currentPage}/`;
+
+  const categoryBreadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: `${baseUrl}/`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: displayTitle,
+        item: `${baseUrl}/${categorySlug}/`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: `Page ${currentPage}`,
+        item: pageCanonicalUrl,
+      },
+    ],
+  };
+
   return (
     <div className="container">
       <div className="blog-layout">
         <div className="content-area">
+          {/* Breadcrumb Schema */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(categoryBreadcrumbSchema) }}
+          />
+
+          {/* Visual Breadcrumb Navigation */}
+          <nav aria-label="Breadcrumb" className="breadcrumb-nav" style={{ marginBottom: '14px', fontSize: '0.85rem', color: '#64748b' }}>
+            <Link href="/" style={{ color: '#0284c7', textDecoration: 'none' }}>Home</Link>
+            <span style={{ margin: '0 6px', color: '#94a3b8' }}>/</span>
+            <Link href={`/${categorySlug}/`} style={{ color: '#0284c7', textDecoration: 'none' }}>{displayTitle}</Link>
+            <span style={{ margin: '0 6px', color: '#94a3b8' }}>/</span>
+            <span style={{ color: '#64748b' }}>Page {currentPage}</span>
+          </nav>
+
           <div className="section-head">
             <h2 className="section-title">
               Category: {displayTitle} (Page {currentPage})
